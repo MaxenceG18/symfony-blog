@@ -1,0 +1,147 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Devenir auteur - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <h1 class="mb-4"><i class="bi bi-pencil-square me-2"></i>Devenir auteur</h1>
+            
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>
+                        Pourquoi devenir auteur ?
+                    </h5>
+                    <p class="card-text">
+                        En devenant auteur, vous pourrez :
+                    </p>
+                    <ul>
+                        <li><i class="bi bi-check text-success"></i> Créer vos propres articles</li>
+                        <li><i class="bi bi-check text-success"></i> Modifier et supprimer vos articles</li>
+                        <li><i class="bi bi-check text-success"></i> Inviter des co-auteurs sur vos articles</li>
+                        <li><i class="bi bi-check text-success"></i> Être proposé comme co-auteur par d'autres</li>
+                    </ul>
+                </div>
+            </div>
+
+            {% if pendingRequest %}
+                {# Demande en attente #}
+                <div class="card shadow border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="bi bi-hourglass-split me-2"></i>Demande en attente
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-2">
+                            <strong>Date de la demande :</strong> 
+                            {{ pendingRequest.createdAt|date('d/m/Y à H:i') }}
+                        </p>
+                        {% if pendingRequest.motivation %}
+                        <p class="mb-3">
+                            <strong>Votre motivation :</strong><br>
+                            {{ pendingRequest.motivation }}
+                        </p>
+                        {% endif %}
+                        <p class="text-muted mb-3">
+                            Votre demande est en cours d'examen par un administrateur. 
+                            Vous serez notifié lorsqu'elle sera traitée.
+                        </p>
+                        <form action="{{ path('app_author_request_cancel', {id: pendingRequest.id}) }}" method="post" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('cancel' ~ pendingRequest.id) }}">
+                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Êtes-vous sûr de vouloir annuler votre demande ?')">
+                                <i class="bi bi-x-circle me-1"></i>Annuler ma demande
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+            {% else %}
+                {# Formulaire de demande #}
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <i class="bi bi-send me-2"></i>Faire une demande
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ path('app_author_request_new') }}" method="post">
+                            <input type="hidden" name="_token" value="{{ csrf_token('author_request') }}">
+                            
+                            <div class="mb-3">
+                                <label for="motivation" class="form-label">
+                                    Pourquoi souhaitez-vous devenir auteur ? <span class="text-muted">(facultatif)</span>
+                                </label>
+                                <textarea 
+                                    name="motivation" 
+                                    id="motivation" 
+                                    class="form-control" 
+                                    rows="4"
+                                    placeholder="Décrivez vos motivations, les sujets que vous aimeriez aborder..."
+                                ></textarea>
+                                <small class="text-muted">
+                                    Cette information aidera les administrateurs à évaluer votre demande.
+                                </small>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i>Envoyer ma demande
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Historique des demandes #}
+            {% if allRequests|length > 0 %}
+            <div class="card shadow mt-4">
+                <div class="card-header">
+                    <i class="bi bi-clock-history me-2"></i>Historique de vos demandes
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Statut</th>
+                                    <th>Réponse</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in allRequests %}
+                                <tr>
+                                    <td>{{ req.createdAt|date('d/m/Y H:i') }}</td>
+                                    <td>
+                                        <span class="badge {{ req.status.badgeClass }}">
+                                            {{ req.status.label }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if req.respondedAt %}
+                                            <small class="text-muted">
+                                                {{ req.respondedAt|date('d/m/Y') }}
+                                                {% if req.adminComment %}
+                                                    <br><em>"{{ req.adminComment }}"</em>
+                                                {% endif %}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-4">
+                <a href="{{ path('app_profile') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Retour au profil
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

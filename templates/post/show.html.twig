@@ -1,0 +1,248 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ post.title }} - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            {# Article Header #}
+            <article>
+                <div class="mb-3">
+                    <a href="{{ path('app_category_show', {slug: post.category.slug}) }}" class="badge bg-primary text-decoration-none">
+                        {{ post.category.name }}
+                    </a>
+                </div>
+                
+                <h1 class="mb-3">{{ post.title }}</h1>
+                
+                {# Authors Info #}
+                <div class="d-flex align-items-center flex-wrap gap-3 mb-4 pb-4 border-bottom">
+                    <div class="d-flex align-items-center">
+                        {% if post.author.profilePicture %}
+                            <img src="{{ post.author.profilePicture }}" class="author-avatar me-2" alt="{{ post.author.fullName }}">
+                        {% else %}
+                            <div class="avatar-placeholder me-2">
+                                {{ post.author.firstName|first }}{{ post.author.lastName|first }}
+                            </div>
+                        {% endif %}
+                        <div>
+                            <strong>{{ post.author.fullName }}</strong>
+                            <br>
+                            <small class="text-muted">Auteur principal</small>
+                        </div>
+                    </div>
+                    
+                    {# Co-authors #}
+                    {% if confirmedCollaborators|length > 0 %}
+                        {% for collab in confirmedCollaborators %}
+                        <div class="d-flex align-items-center">
+                            {% if collab.collaborator.profilePicture %}
+                                <img src="{{ collab.collaborator.profilePicture }}" class="author-avatar me-2" alt="{{ collab.collaborator.fullName }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2">
+                                    {{ collab.collaborator.firstName|first }}{{ collab.collaborator.lastName|first }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ collab.collaborator.fullName }}</strong>
+                                <br>
+                                <small class="text-muted">Co-auteur</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <div class="ms-auto text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ post.publishedAt|date('d F Y') }}
+                        {% if post.updatedAt %}
+                            <br>
+                            <small><i class="bi bi-pencil me-1"></i>Modifié le {{ post.updatedAt|date('d/m/Y') }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Stats bar: Likes & Views #}
+                <div class="d-flex align-items-center gap-4 mb-4 pb-3 border-bottom">
+                    {# Like Button #}
+                    {% if app.user %}
+                        <form action="{{ path('app_post_like', {slug: post.slug}) }}" method="post" class="d-inline">
+                            <input type="hidden" name="_token" value="{{ csrf_token('like' ~ post.id) }}">
+                            <button type="submit" class="btn {{ isLikedByUser ? 'btn-danger' : 'btn-outline-danger' }} btn-sm">
+                                <i class="bi {{ isLikedByUser ? 'bi-heart-fill' : 'bi-heart' }} me-1"></i>
+                                {{ post.likeCount }}
+                            </button>
+                        </form>
+                    {% else %}
+                        <span class="text-muted">
+                            <i class="bi bi-heart me-1"></i>{{ post.likeCount }} j'aime
+                        </span>
+                    {% endif %}
+                    
+                    {# View Count #}
+                    <span class="text-muted">
+                        <i class="bi bi-eye me-1"></i>{{ post.viewCount }} vue{{ post.viewCount > 1 ? 's' : '' }}
+                    </span>
+                    
+                    {# Comments Count #}
+                    <span class="text-muted">
+                        <i class="bi bi-chat me-1"></i>{{ post.comments|length }} commentaire{{ post.comments|length > 1 ? 's' : '' }}
+                    </span>
+                </div>
+
+                {# Featured Image #}
+                {% if post.picture %}
+                <div class="mb-4">
+                    <img src="{{ post.picture }}" class="img-fluid rounded shadow" alt="{{ post.title }}">
+                </div>
+                {% endif %}
+
+                {# Article Content #}
+                <div class="article-content fs-5 lh-lg">
+                    {{ post.content|nl2br }}
+                </div>
+
+                {# Admin Actions #}
+                {% if is_granted('ROLE_ADMIN') %}
+                <div class="mt-4 p-3 bg-light rounded">
+                    <h6><i class="bi bi-gear me-2"></i>Actions administrateur</h6>
+                    <a href="{{ path('app_post_edit', {slug: post.slug}) }}" class="btn btn-primary">
+                        <i class="bi bi-pencil me-2"></i>Modifier
+                    </a>
+                    <form action="{{ path('app_post_delete', {slug: post.slug}) }}" method="post" class="d-inline"
+                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet article ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ post.id) }}">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Supprimer
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </article>
+
+            <hr class="my-5">
+
+            {# Comments Section #}
+            <section id="comments">
+                <h3 class="mb-4">
+                    <i class="bi bi-chat-dots me-2"></i>
+                    Commentaires ({{ post.approvedComments|length }})
+                </h3>
+
+                {# Add Comment Form #}
+                {% if app.user %}
+                    {% if app.user.isActive %}
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <h5 class="card-title">Ajouter un commentaire</h5>
+                                {{ form_start(commentForm) }}
+                                    <div class="mb-3">
+                                        {{ form_widget(commentForm.content) }}
+                                        {{ form_errors(commentForm.content) }}
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-send me-2"></i>Publier
+                                    </button>
+                                    <small class="text-muted ms-2">Votre commentaire sera visible après validation.</small>
+                                {{ form_end(commentForm) }}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning mb-4">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Votre compte doit être activé par un administrateur pour pouvoir commenter.
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info mb-4">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <a href="{{ path('app_login') }}">Connectez-vous</a> pour ajouter un commentaire.
+                    </div>
+                {% endif %}
+
+                {# Comments List #}
+                {% set approvedComments = post.approvedComments %}
+                {% if approvedComments is empty %}
+                    <p class="text-muted">Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
+                {% else %}
+                    {% for comment in approvedComments %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start">
+                                {% if comment.author.profilePicture %}
+                                    <img src="{{ comment.author.profilePicture }}" class="author-avatar me-3" alt="{{ comment.author.fullName }}">
+                                {% else %}
+                                    <div class="avatar-placeholder me-3">
+                                        {{ comment.author.firstName|first }}{{ comment.author.lastName|first }}
+                                    </div>
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <strong>{{ comment.author.fullName }}</strong>
+                                        <small class="text-muted">
+                                            <i class="bi bi-clock me-1"></i>
+                                            {{ comment.createdAt|date('d/m/Y à H:i') }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-0">{{ comment.content|nl2br }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </section>
+        </div>
+
+        {# Sidebar #}
+        <div class="col-lg-4">
+            {# Back to Articles #}
+            <div class="sidebar-widget">
+                <a href="{{ path('app_post_index') }}" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-arrow-left me-2"></i>Retour aux articles
+                </a>
+            </div>
+
+            {# Article Info #}
+            <div class="sidebar-widget">
+                <h5><i class="bi bi-info-circle me-2"></i>Informations</h5>
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2">
+                        <i class="bi bi-folder me-2 text-muted"></i>
+                        <strong>Catégorie:</strong> {{ post.category.name }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-calendar me-2 text-muted"></i>
+                        <strong>Publié:</strong> {{ post.publishedAt|date('d/m/Y') }}
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-chat me-2 text-muted"></i>
+                        <strong>Commentaires:</strong> {{ post.approvedComments|length }}
+                    </li>
+                    <li>
+                        <i class="bi bi-people me-2 text-muted"></i>
+                        <strong>Auteurs:</strong> {{ 1 + confirmedCollaborators|length }}
+                    </li>
+                </ul>
+            </div>
+
+            {# Share Widget #}
+            <div class="sidebar-widget">
+                <h5><i class="bi bi-share me-2"></i>Partager</h5>
+                <div class="d-flex gap-2">
+                    <a href="#" class="btn btn-outline-primary btn-sm" title="Facebook">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-info btn-sm" title="Twitter">
+                        <i class="bi bi-twitter"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-success btn-sm" title="LinkedIn">
+                        <i class="bi bi-linkedin"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modération des commentaires - Admin{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-chat-dots me-2"></i>Modération des commentaires</h1>
+        <a href="{{ path('app_admin_dashboard') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Retour au tableau de bord
+        </a>
+    </div>
+
+    <div class="card shadow">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Auteur</th>
+                            <th>Article</th>
+                            <th>Commentaire</th>
+                            <th>Date</th>
+                            <th>Statut</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comment in comments %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if comment.author.profilePicture %}
+                                        <img src="{{ comment.author.profilePicture }}" class="author-avatar avatar-sm me-2">
+                                    {% else %}
+                                        <div class="avatar-placeholder avatar-sm me-2">
+                                            {{ comment.author.firstName|first }}{{ comment.author.lastName|first }}
+                                        </div>
+                                    {% endif %}
+                                    {{ comment.author.fullName }}
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{{ path('app_post_show', {slug: comment.post.slug}) }}" class="text-decoration-none">
+                                    {{ comment.post.title|length > 30 ? comment.post.title|slice(0, 30) ~ '...' : comment.post.title }}
+                                </a>
+                            </td>
+                            <td>
+                                <span class="d-inline-block" style="max-width: 300px;" data-bs-toggle="tooltip" title="{{ comment.content }}">
+                                    {{ comment.content|length > 100 ? comment.content|slice(0, 100) ~ '...' : comment.content }}
+                                </span>
+                            </td>
+                            <td>{{ comment.createdAt|date('d/m/Y H:i') }}</td>
+                            <td>
+                                <span class="badge {{ comment.status.badgeClass }}">
+                                    {{ comment.status.label }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if comment.status.value != 'approved' %}
+                                <form action="{{ path('app_admin_comment_approve', {id: comment.id}) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Approuver">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                {% if comment.status.value != 'rejected' %}
+                                <form action="{{ path('app_admin_comment_reject', {id: comment.id}) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-warning" title="Rejeter">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                
+                                <form action="{{ path('app_admin_comment_delete', {id: comment.id}) }}" method="post" class="d-inline"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce commentaire ?')">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Aucun commentaire</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

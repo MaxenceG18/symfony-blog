@@ -1,0 +1,225 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Tableau de bord</h1>
+
+    {# Statistics Cards #}
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">{{ totalPosts }}</h2>
+                            <p class="mb-0">Articles</p>
+                        </div>
+                        <i class="bi bi-file-text display-4 opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ path('app_admin_posts') }}" class="text-white text-decoration-none small">
+                        Voir tous <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">{{ totalCategories }}</h2>
+                            <p class="mb-0">Catégories</p>
+                        </div>
+                        <i class="bi bi-tags display-4 opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ path('app_admin_categories') }}" class="text-white text-decoration-none small">
+                        Gérer <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">{{ pendingUsers }}</h2>
+                            <p class="mb-0">Inscriptions en attente</p>
+                        </div>
+                        <i class="bi bi-person-plus display-4 opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ path('app_admin_users') }}" class="text-dark text-decoration-none small">
+                        Voir <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card bg-danger text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="mb-0">{{ pendingComments }}</h2>
+                            <p class="mb-0">Commentaires en attente</p>
+                        </div>
+                        <i class="bi bi-chat-dots display-4 opacity-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{{ path('app_admin_comments') }}" class="text-white text-decoration-none small">
+                        Modérer <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Author Requests Alert #}
+    {% if pendingAuthorRequests > 0 %}
+    <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+        <i class="bi bi-pencil-square me-3 fs-4"></i>
+        <div class="flex-grow-1">
+            <strong>{{ pendingAuthorRequests }} demande(s) d'auteur</strong> en attente de validation.
+        </div>
+        <a href="{{ path('app_admin_author_requests') }}" class="btn btn-info btn-sm">
+            <i class="bi bi-arrow-right me-1"></i>Voir
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        {# Quick Actions #}
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions rapides</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ path('app_post_new') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i>Nouvel article
+                        </a>
+                        <a href="{{ path('app_admin_category_new') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-folder-plus me-2"></i>Nouvelle catégorie
+                        </a>
+                        <a href="{{ path('app_admin_author_requests') }}" class="btn btn-outline-info">
+                            <i class="bi bi-pencil-square me-2"></i>Demandes d'auteur
+                            {% if pendingAuthorRequests > 0 %}
+                                <span class="badge bg-warning text-dark">{{ pendingAuthorRequests }}</span>
+                            {% endif %}
+                        </a>
+                        <a href="{{ path('app_admin_users') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-people me-2"></i>Gérer les utilisateurs
+                        </a>
+                        <a href="{{ path('app_admin_comments') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-chat-dots me-2"></i>Modérer les commentaires
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Latest Posts #}
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Derniers articles</h5>
+                    <a href="{{ path('app_admin_posts') }}" class="btn btn-sm btn-outline-primary">Voir tous</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if latestPosts is empty %}
+                        <p class="text-muted p-4 mb-0">Aucun article.</p>
+                    {% else %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Catégorie</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for post in latestPosts %}
+                                <tr>
+                                    <td>{{ post.title|length > 40 ? post.title|slice(0, 40) ~ '...' : post.title }}</td>
+                                    <td><span class="badge bg-secondary">{{ post.category.name }}</span></td>
+                                    <td>{{ post.publishedAt|date('d/m/Y') }}</td>
+                                    <td>
+                                        <a href="{{ path('app_post_show', {slug: post.slug}) }}" class="btn btn-sm btn-outline-primary" title="Voir">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ path('app_post_edit', {slug: post.slug}) }}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Pending Comments #}
+    {% if pendingCommentsList|length > 0 %}
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Commentaires à modérer</h5>
+            <a href="{{ path('app_admin_comments') }}" class="btn btn-sm btn-dark">Voir tous</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Auteur</th>
+                            <th>Article</th>
+                            <th>Commentaire</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comment in pendingCommentsList|slice(0, 5) %}
+                        <tr>
+                            <td>{{ comment.author.fullName }}</td>
+                            <td>{{ comment.post.title|length > 30 ? comment.post.title|slice(0, 30) ~ '...' : comment.post.title }}</td>
+                            <td>{{ comment.content|length > 50 ? comment.content|slice(0, 50) ~ '...' : comment.content }}</td>
+                            <td>{{ comment.createdAt|date('d/m/Y') }}</td>
+                            <td>
+                                <form action="{{ path('app_admin_comment_approve', {id: comment.id}) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('approve' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-success" title="Approuver">
+                                        <i class="bi bi-check"></i>
+                                    </button>
+                                </form>
+                                <form action="{{ path('app_admin_comment_reject', {id: comment.id}) }}" method="post" class="d-inline">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ comment.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="Rejeter">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

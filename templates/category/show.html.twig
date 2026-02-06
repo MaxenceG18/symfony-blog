@@ -1,0 +1,78 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ category.name }} - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_category_index') }}">Catégories</a></li>
+            <li class="breadcrumb-item active">{{ category.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><i class="bi bi-folder me-2"></i>{{ category.name }}</h1>
+            {% if category.description %}
+                <p class="text-muted lead mb-0">{{ category.description }}</p>
+            {% endif %}
+        </div>
+        <span class="badge bg-primary fs-6">{{ posts|length }} article(s)</span>
+    </div>
+
+    {% if posts is empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Aucun article dans cette catégorie pour le moment.
+        </div>
+    {% else %}
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card post-card h-100">
+                    {% if post.picture %}
+                        <img src="{{ post.picture }}" class="card-img-top" alt="{{ post.title }}">
+                    {% else %}
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="bi bi-image text-white" style="font-size: 3rem;"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="{{ path('app_post_show', {slug: post.slug}) }}" class="text-decoration-none text-dark">
+                                {{ post.title }}
+                            </a>
+                        </h5>
+                        <p class="card-text text-muted">{{ post.excerpt(100) }}</p>
+                    </div>
+                    
+                    <div class="card-footer bg-transparent">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                {% if post.author.profilePicture %}
+                                    <img src="{{ post.author.profilePicture }}" class="author-avatar avatar-sm me-2" alt="{{ post.author.fullName }}">
+                                {% else %}
+                                    <div class="avatar-placeholder avatar-sm me-2">
+                                        {{ post.author.firstName|first }}{{ post.author.lastName|first }}
+                                    </div>
+                                {% endif %}
+                                <small class="text-muted">{{ post.author.firstName }}</small>
+                            </div>
+                            <small class="text-muted">{{ post.publishedAt|date('d/m/Y') }}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{{ path('app_category_index') }}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Retour aux catégories
+        </a>
+    </div>
+</div>
+{% endblock %}

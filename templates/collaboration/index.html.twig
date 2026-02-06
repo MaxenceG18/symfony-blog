@@ -1,0 +1,120 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mes collaborations - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="bi bi-people me-2"></i>Demandes de collaboration</h1>
+
+    {# Pending Requests #}
+    {% if pendingRequests|length > 0 %}
+    <div class="card shadow mb-4 border-warning">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0">
+                <i class="bi bi-bell-fill me-2"></i>En attente de réponse ({{ pendingRequests|length }})
+            </h5>
+        </div>
+        <div class="card-body">
+            {% for request in pendingRequests %}
+            <div class="row align-items-center {% if not loop.last %}mb-4 pb-4 border-bottom{% endif %}">
+                <div class="col-md-6">
+                    <h5 class="mb-1">
+                        <a href="{{ path('app_post_show', {slug: request.post.slug}) }}" class="text-decoration-none">
+                            {{ request.post.title }}
+                        </a>
+                    </h5>
+                    <p class="text-muted mb-0">
+                        <i class="bi bi-person me-1"></i>
+                        Demandé par <strong>{{ request.post.author.fullName }}</strong>
+                    </p>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        {{ request.createdAt|date('d/m/Y à H:i') }}
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <form action="{{ path('app_collaboration_accept', {id: request.id}) }}" method="post" class="d-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('accept' ~ request.id) }}">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-lg me-1"></i>Accepter la collaboration
+                        </button>
+                    </form>
+                    <form action="{{ path('app_collaboration_reject', {id: request.id}) }}" method="post" class="d-inline">
+                        <input type="hidden" name="_token" value="{{ csrf_token('reject' ~ request.id) }}">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-x-lg me-1"></i>Refuser
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        Aucune demande de collaboration en attente.
+    </div>
+    {% endif %}
+
+    {# All Requests History #}
+    <div class="card shadow">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Historique des demandes</h5>
+        </div>
+        <div class="card-body">
+            {% if allRequests is empty %}
+                <p class="text-muted mb-0">Aucune demande de collaboration.</p>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Article</th>
+                                <th>Auteur principal</th>
+                                <th>Date de demande</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for request in allRequests %}
+                            <tr>
+                                <td>
+                                    <a href="{{ path('app_post_show', {slug: request.post.slug}) }}" class="text-decoration-none">
+                                        {{ request.post.title }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% if request.post.author.profilePicture %}
+                                            <img src="{{ request.post.author.profilePicture }}" class="author-avatar avatar-sm me-2">
+                                        {% else %}
+                                            <div class="avatar-placeholder avatar-sm me-2">
+                                                {{ request.post.author.firstName|first }}{{ request.post.author.lastName|first }}
+                                            </div>
+                                        {% endif %}
+                                        {{ request.post.author.fullName }}
+                                    </div>
+                                </td>
+                                <td>{{ request.createdAt|date('d/m/Y') }}</td>
+                                <td>
+                                    <span class="badge {{ request.status.badgeClass }}">
+                                        {{ request.status.label }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_post_show', {slug: request.post.slug}) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

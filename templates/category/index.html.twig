@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catégories - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="bi bi-tags me-2"></i>Catégories</h1>
+    
+    {% if categories is empty %}
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Aucune catégorie pour le moment.
+        </div>
+    {% else %}
+        <div class="row">
+            {% for item in categories %}
+                {% set category = item[0] is defined ? item[0] : item %}
+                {% set count = item.postCount is defined ? item.postCount : category.posts|length %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-folder me-2 text-primary"></i>
+                                {{ category.name }}
+                            </h5>
+                            {% if category.description %}
+                                <p class="card-text text-muted">{{ category.description }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer bg-transparent d-flex justify-content-between align-items-center">
+                            <span class="badge bg-secondary">{{ count }} article(s)</span>
+                            <a href="{{ path('app_category_show', {slug: category.slug}) }}" class="btn btn-sm btn-primary">
+                                Voir les articles <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

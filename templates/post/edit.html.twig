@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier l'article - Mon Blog{% endblock %}
+
+{% block body %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil me-2"></i>Modifier l'article</h4>
+                </div>
+                <div class="card-body p-4">
+                    {{ form_start(form) }}
+                        <div class="mb-3">
+                            {{ form_label(form.title) }}
+                            {{ form_widget(form.title) }}
+                            {{ form_errors(form.title) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.category) }}
+                            {{ form_widget(form.category) }}
+                            {{ form_errors(form.category) }}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.picture) }}
+                            {{ form_widget(form.picture) }}
+                            {{ form_errors(form.picture) }}
+                            {% if post.picture %}
+                                <div class="mt-2">
+                                    <small class="text-muted">Image actuelle:</small>
+                                    <img src="{{ post.picture }}" class="img-thumbnail mt-1" style="max-height: 150px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form_label(form.content) }}
+                            {{ form_widget(form.content) }}
+                            {{ form_errors(form.content) }}
+                        </div>
+
+                        <div class="mb-4">
+                            {{ form_label(form.collaborators) }}
+                            {{ form_widget(form.collaborators) }}
+                            {{ form_errors(form.collaborators) }}
+                            <small class="text-muted d-block mt-1">{{ form.collaborators.vars.help }}</small>
+                            
+                            {# Show existing collaborators #}
+                            {% if post.collaborationRequests|length > 0 %}
+                            <div class="mt-3">
+                                <strong>Collaborateurs existants:</strong>
+                                <ul class="list-unstyled mt-2">
+                                    {% for request in post.collaborationRequests %}
+                                    <li class="mb-1">
+                                        {{ request.collaborator.fullName }}
+                                        <span class="badge {{ request.status.badgeClass }}">{{ request.status.label }}</span>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ path('app_post_show', {slug: post.slug}) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left me-2"></i>Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>Enregistrer les modifications
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
