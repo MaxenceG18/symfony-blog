@@ -65,6 +65,43 @@ symfony serve
 | pierre@example.com | user123 | Utilisateur |
 | sophie@example.com | user123 | Utilisateur |
 
+## Pages d'erreur personnalisées
+
+Les pages d'erreur personnalisées (404, 500, etc.) ne s'affichent qu'en **mode production**.
+
+### Tester en mode développement
+
+En mode `dev`, Symfony affiche le Profiler pour faciliter le débogage. Pour prévisualiser vos pages d'erreur sans changer d'environnement, utilisez les routes spéciales :
+
+- `http://localhost:8000/_error/404` → Page 404
+- `http://localhost:8000/_error/500` → Page 500
+- `http://localhost:8000/_error/403` → Page 403
+
+### Passer en mode production
+
+1. **Modifier le fichier `.env`** :
+   ```env
+   APP_ENV=prod
+   APP_DEBUG=0
+   ```
+
+2. **S'assurer que `APP_SECRET` est défini** :
+   ```env
+   APP_SECRET=votre_clé_secrète_ici
+   ```
+   > ⚠️ Utilisez une clé aléatoire et sécurisée. Vous pouvez en générer une avec : `php -r "echo bin2hex(random_bytes(16));"`
+
+3. **Vider le cache** :
+   ```bash
+   php bin/console cache:clear --env=prod
+   ```
+
+4. **Pour revenir en mode dev** :
+   ```env
+   APP_ENV=dev
+   APP_DEBUG=1
+   ```
+
 ## Fonctionnalités
 
 - **Utilisateurs** : Inscription, connexion, profil, activation par admin
